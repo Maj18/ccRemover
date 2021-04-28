@@ -123,7 +123,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
     cat("\nIteration ", i, "...", fill=TRUE)
 
     ## calculate the test statistic and the t statistic
-    res_boot <- bootstrap_diff(xy=xy, xn=xn, nboot=nboot, bar)
+    res_boot <- bootstrap_diff(xy=xy, xn=xn, nboot=nboot, bar, ...)
     cat("The bootstrap results on the top", ntop, "components are:")
     print(res_boot[1 : ntop, ])
 #          xn_load   xy_load   diff_load t_load_boot #t_load_boot=diff_load/sd
@@ -215,7 +215,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
     }
     res <- get_diff(xy[sample(1 : nrow(xy), nrow(xy), replace=TRUE), ], 
                     #replace=T make some genes disappear, while others overrepresented.
-                    xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ])
+                    xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ], ...)
     diff_load_boot[, i] <- res$diff_load 
     #From each bootstrap run, we will get $nPC diff_load values
     #All together, we will get a matrix: nrow= nPC, ncol=nboot
@@ -245,7 +245,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 #' @return A data frame containing the loadings for each component on the
 #' cell-cycle and control genes.
 
-get_diff <- function(xy, xn)
+get_diff <- function(xy, xn, ...)
 {
   xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
   xn_proj <- xn %*% xn_pca$rotation #output: row: genes, col: PCs
