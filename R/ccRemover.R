@@ -126,10 +126,20 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
     res_boot <- bootstrap_diff(xy=xy, xn=xn, nboot=nboot, bar)
     cat("The bootstrap results on the top", ntop, "components are:")
     print(res_boot[1 : ntop, ])
-
+#          xn_load   xy_load   diff_load t_load_boot #t_load_boot=diff_load/sd
+#   PC1  9.681281 11.164245  1.48296444  3.74402433
+#   PC2  6.932106  6.221538 -0.71056800 -0.89587019
+#   PC3  5.043708  5.091521  0.04781354  0.08173771
+#   PC4  4.212430  5.938865  1.72643456  5.74015903
+#   PC5  3.019651  2.733409 -0.28624251 -0.45537545
+#   PC6  2.875084  3.217810  0.34272615  0.42149293
+#   PC7  2.682083  2.371485 -0.31059809 -1.60642301
+#   PC8  2.585086  2.634081  0.04899532  0.11869654
+#   PC9  2.465026  2.381195 -0.08383108 -0.76575403
+#   PC10 2.406141  2.021187 -0.38495483 -2.60754835
     ## decide which components to remove
     which_cc <- which(res_boot$t_load_boot[1 : ntop] >= cutoff)
-
+      # 1, 4
     ## when there is nothing to remove, end the iteration
     if (length(which_cc) == 0)
     {
@@ -140,12 +150,17 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
     ## remove the cell-cycle effect
     cat("The follow components are removed:", which_cc, fill=TRUE)
     xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
-    xn_hat <- xn
+    xn_hat <- xn # row: genes; col: cells
     xy_hat <- xy
     for (i in 1 : length(which_cc))
     {
       xn_hat <- xn_hat - (xn %*% xn_pca$rotation[, which_cc[i]]) %*%
-        t(xn_pca$rotation[, which_cc[i]])
+        #xn %*% xn_pca$rotation[, which_cc[i]], output: row, genes; col, PCs.
+        t(xn_pca$rotation[, which_cc[i]])#row: PCs, col: cells
+        #The output of the second half of the above equation: row-genes, col-cells
+        #The second half of the above equation: first load cc effect (cc dominating PCs) onto genes,
+                #Then load the cc effect onto cells
+        #The entire equation above: the original gene expression subtracted by the cc effect loading on each gene/cell.
       xy_hat <- xy_hat - (xy %*% xn_pca$rotation[, which_cc[i]]) %*%
         t(xn_pca$rotation[, which_cc[i]])
     }
@@ -198,15 +213,20 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
     if (bar == TRUE){
       utils::setTxtProgressBar(pb, i)
     }
-    res <- get_diff(xy[sample(1 : nrow(xy), nrow(xy), replace=TRUE), ],
+    res <- get_diff(xy[sample(1 : nrow(xy), nrow(xy), replace=TRUE), ], 
+                    #replace=T make some genes disappear, while others overrepresented.
                     xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ])
-    diff_load_boot[, i] <- res$diff_load
+    diff_load_boot[, i] <- res$diff_load 
+    #From each bootstrap run, we will get $nPC diff_load values
+    #All together, we will get a matrix: nrow= nPC, ncol=nboot
   }
   if(bar == TRUE){
     close(pb)
   }
-  sd1 <- apply(diff_load_boot, 1, stats::sd)
-  res0$t_load_boot <- res0$diff_load / sd1
+  sd1 <- apply(diff_load_boot, 1, stats::sd)#1: row/PC #the diff_load sd at each PC among all bootstrap runs
+  res0$t_load_boot <- res0$diff_load / sd1 #Bootstraping here are for getting sd
+  #res0$diff_load: the original diff_load, without bootstrapping, a vector of nPC long
+  
 
   return(res0)
 }
@@ -228,7 +248,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 get_diff <- function(xy, xn)
 {
   xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
-  xn_proj <- xn %*% xn_pca$rotation
+  xn_proj <- xn %*% xn_pca$rotation #output: row: genes, col: PCs
   xy_proj <- xy %*% xn_pca$rotation
 
   xn_load <- sqrt(colMeans(xn_proj ^ 2))
@@ -236,4 +256,5 @@ get_diff <- function(xy, xn)
 
   return(data.frame(xn_load=xn_load, xy_load=xy_load,
                     diff_load=xy_load-xn_load))
+  #diff_load is a vector of nPC long
 }
