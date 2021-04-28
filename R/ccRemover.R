@@ -202,7 +202,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
 bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 {
   res0 <- get_diff(xy, xn, ...)
-  val <- min(ncol(xn), nrow(xn))
+  val <- length(res0$xn_load) #min(ncol(xn), nrow(xn))
   diff_load_boot <- matrix(NA, nrow=val, ncol=nboot)
   cat("Bootstrapping...")
   if (bar == TRUE){
