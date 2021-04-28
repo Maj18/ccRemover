@@ -73,7 +73,8 @@
 #' xhat <- ccRemover(dat, cutoff = 3, max_it = 4, nboot = 200, ntop = 15)
 #'  }
 #'
-ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE)
+ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...)
+  #rank.=3, for deciding how many PC to compute
 {
   ## check arguments
   if (!is.list(dat)) stop("dat has to be a list!")
@@ -138,7 +139,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE)
 
     ## remove the cell-cycle effect
     cat("The follow components are removed:", which_cc, fill=TRUE)
-    xn_pca <- stats::prcomp(xn, scale.=FALSE)
+    xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
     xn_hat <- xn
     xy_hat <- xy
     for (i in 1 : length(which_cc))
@@ -183,9 +184,9 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE)
 #' cell-cycle and control genes as well as the difference between the loadings
 #' and the bootstrapped statistic for each loading.
 #'
-bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE)
+bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 {
-  res0 <- get_diff(xy, xn)
+  res0 <- get_diff(xy, xn, ...)
   val <- min(ncol(xn), nrow(xn))
   diff_load_boot <- matrix(NA, nrow=val, ncol=nboot)
   cat("Bootstrapping...")
@@ -226,7 +227,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE)
 
 get_diff <- function(xy, xn)
 {
-  xn_pca <- stats::prcomp(xn, scale.=FALSE)
+  xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
   xn_proj <- xn %*% xn_pca$rotation
   xy_proj <- xy %*% xn_pca$rotation
 
