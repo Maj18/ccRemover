@@ -222,7 +222,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, rank.=6000)
                     #Bug: the random sampling may produce cells with identical gene expression profile,
                         #Leading to a 
     #diff_load_boot[, i] <- res$diff_load 
-    res$diff_load
+    print(res$diff_load)
     #From each bootstrap run, we will get $nPC diff_load values
     #All together, we will get a matrix: nrow= nPC, ncol=nboot
     if(bar == TRUE){
