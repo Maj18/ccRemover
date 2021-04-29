@@ -73,7 +73,7 @@
 #' xhat <- ccRemover(dat, cutoff = 3, max_it = 4, nboot = 200, ntop = 15)
 #'  }
 #'
-ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...)
+ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, cores=48,  ...)
   #Li: one can add more options to stats::prcomp, e.g. rank.=3, for choosing different PC nr to keep.
 {
   ## check arguments
@@ -123,7 +123,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
     cat("\nIteration ", i, "...", fill=TRUE)
 
     ## calculate the test statistic and the t statistic
-    res_boot <- bootstrap_diff(xy=xy, xn=xn, nboot=nboot, bar, ...)
+    res_boot <- bootstrap_diff(xy=xy, xn=xn, nboot=nboot, cores=cores, bar, ...)
     cat("The bootstrap results on the top", ntop, "components are:")
     print(res_boot[1 : ntop, ])
 #          xn_load   xy_load   diff_load t_load_boot #t_load_boot=diff_load/sd
@@ -199,18 +199,21 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
 #' cell-cycle and control genes as well as the difference between the loadings
 #' and the bootstrapped statistic for each loading.
 #'
-bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
+bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, cores=48, ...)
 {
   res0 <- get_diff(xy, xn, ...)
   val <- length(res0$xn_load) #min(ncol(xn), nrow(xn))
-  diff_load_boot <- matrix(NA, nrow=val, ncol=nboot)
+  #diff_load_boot <- matrix(NA, nrow=val, ncol=nboot)
   cat("Bootstrapping...")
   if (bar == TRUE){
     pb <- utils::txtProgressBar(min = 1, max = nboot, style = 3)
   }
-  for (i in 1 : nboot)
-  {
-    if (bar == TRUE){
+  
+  
+  
+  
+  bootRun <- function(boot){
+      if (bar == TRUE){
       utils::setTxtProgressBar(pb, i)
     }
     res <- get_diff(xy[sample(1 : nrow(xy), nrow(xy), replace=TRUE), ], 
@@ -218,14 +221,38 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
                     xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ], ...)
                     #Bug: the random sampling may produce cells with identical gene expression profile,
                         #Leading to a 
-    diff_load_boot[, i] <- res$diff_load 
+    #diff_load_boot[, i] <- res$diff_load 
+    res$diff_load
     #From each bootstrap run, we will get $nPC diff_load values
     #All together, we will get a matrix: nrow= nPC, ncol=nboot
   }
+  
+
+ diff_load_boot <- mclapply(1:nboot, bootRun, mc.cores = cores)
+  
+  
+  #for (i in 1 : nboot)
+  #{
+  #  if (bar == TRUE){
+  #    utils::setTxtProgressBar(pb, i)
+  #  }
+  #  res <- get_diff(xy[sample(1 : nrow(xy), nrow(xy), replace=TRUE), ], 
+  #                  #replace=T make some genes disappear, while others overrepresented.
+  #                  xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ], ...)
+  #                  #Bug: the random sampling may produce cells with identical gene expression profile,
+  #                      #Leading to a 
+  #  diff_load_boot[, i] <- res$diff_load 
+  #  #From each bootstrap run, we will get $nPC diff_load values
+  #  #All together, we will get a matrix: nrow= nPC, ncol=nboot
+  #}
+  
   if(bar == TRUE){
     close(pb)
   }
-  sd1 <- apply(diff_load_boot, 1, stats::sd)#1: row/PC #the diff_load sd at each PC among all bootstrap runs
+  
+  sd1 <- mclapply(diff_load_boot, stats::sd, mc.cores = cores) %>% Reduce(c,.)
+  #sd1 <- apply(diff_load_boot, 1, stats::sd)#1: row/PC #the diff_load sd at each PC among all bootstrap runs
+  
   res0$t_load_boot <- res0$diff_load / sd1 #Bootstraping here are for getting sd
   #res0$diff_load: the original diff_load, without bootstrapping, a vector of nPC long
   
