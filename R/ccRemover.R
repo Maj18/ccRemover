@@ -73,7 +73,7 @@
 #' xhat <- ccRemover(dat, cutoff = 3, max_it = 4, nboot = 200, ntop = 15)
 #'  }
 #'
-ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, cores=48,  ...)
+ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, cores=48,  rank.=6000)
   #Li: one can add more options to stats::prcomp, e.g. rank.=3, for choosing different PC nr to keep.
 {
   ## check arguments
@@ -123,7 +123,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, cor
     cat("\nIteration ", i, "...", fill=TRUE)
 
     ## calculate the test statistic and the t statistic
-    res_boot <- bootstrap_diff(xy=xy, xn=xn, nboot=nboot, cores=cores, bar, ...)
+    res_boot <- bootstrap_diff(xy=xy, xn=xn, nboot=nboot, cores=cores, bar, rank.=rank.)
     cat("The bootstrap results on the top", ntop, "components are:")
     print(res_boot[1 : ntop, ])
 #          xn_load   xy_load   diff_load t_load_boot #t_load_boot=diff_load/sd
@@ -149,7 +149,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, cor
 
     ## remove the cell-cycle effect
     cat("The follow components are removed:", which_cc, fill=TRUE)
-    xn_pca <- prcomp(xn, scale.=FALSE, ...) #Li remove stats::
+    xn_pca <- prcomp(xn, scale.=FALSE) #Li remove stats::
     xn_hat <- xn # row: genes; col: cells
     xy_hat <- xy
     for (i in 1 : length(which_cc))
@@ -199,9 +199,9 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, cor
 #' cell-cycle and control genes as well as the difference between the loadings
 #' and the bootstrapped statistic for each loading.
 #'
-bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, ...)
+bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, rank.=6000)
 {
-  res0 <- get_diff(xy, xn, ...)
+  res0 <- get_diff(xy, xn, rank.=rank.)
   val <- length(res0$xn_load) #min(ncol(xn), nrow(xn))
   #diff_load_boot <- matrix(NA, nrow=val, ncol=nboot)
   cat("Bootstrapping...")
@@ -213,22 +213,24 @@ bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, ...)
   
   
   bootRun <- function(boot){
-      if (bar == TRUE){
+    if (bar == TRUE){
       utils::setTxtProgressBar(pb, i)
     }
     res <- get_diff(xy[sample(1 : nrow(xy), nrow(xy), replace=TRUE), ], 
                     #replace=T make some genes disappear, while others overrepresented.
-                    xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ], ...)
+                    xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ], rank.=rank.)
                     #Bug: the random sampling may produce cells with identical gene expression profile,
                         #Leading to a 
     #diff_load_boot[, i] <- res$diff_load 
     res$diff_load
     #From each bootstrap run, we will get $nPC diff_load values
     #All together, we will get a matrix: nrow= nPC, ncol=nboot
+    if(bar == TRUE){
+    close(pb)}
   }
   
 
- diff_load_boot <- mclapply(1:nboot, bootRun, mc.cores = cores)
+  diff_load_boot <- mclapply(1:nboot, bootRun, mc.cores = cores)
   
   
   #for (i in 1 : nboot)
@@ -245,10 +247,6 @@ bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, ...)
   #  #From each bootstrap run, we will get $nPC diff_load values
   #  #All together, we will get a matrix: nrow= nPC, ncol=nboot
   #}
-  
-  if(bar == TRUE){
-    close(pb)
-  }
   
   sd1 <- mclapply(diff_load_boot, stats::sd, mc.cores = cores) %>% Reduce(c,.)
   #sd1 <- apply(diff_load_boot, 1, stats::sd)#1: row/PC #the diff_load sd at each PC among all bootstrap runs
@@ -274,9 +272,9 @@ bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, ...)
 #' @return A data frame containing the loadings for each component on the
 #' cell-cycle and control genes.
 
-get_diff <- function(xy, xn, ...)
+get_diff <- function(xy, xn, rank.)
 {
-  xn_pca <- prcomp(xn, scale.=FALSE, ...) #Li removed stats::
+  xn_pca <- prcomp(xn, scale.=FALSE) #Li removed stats::
   #xn_pca %>% names()
   #[1] "sdev"     "rotation" "center"   "scale"    "x"  
   #sdev: diagonal matrix?
@@ -288,8 +286,8 @@ get_diff <- function(xy, xn, ...)
   #i.e., maximal number of principal components to be used. 
   #Can be set as alternative or in addition to tol, 
   #useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
-  xn_proj <- xn %*% xn_pca$rotation #output: row: cells, col: PCs
-  xy_proj <- xy %*% xn_pca$rotation
+  xn_proj <- xn %*% xn_pca$rotation[1:rank.] #output: row: cells, col: PCs
+  xy_proj <- xy %*% xn_pca$rotation[1:rank.]
 
   xn_load <- sqrt(colMeans(xn_proj ^ 2))
   xy_load <- sqrt(colMeans(xy_proj ^ 2))
