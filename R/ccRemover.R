@@ -149,7 +149,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
 
     ## remove the cell-cycle effect
     cat("The follow components are removed:", which_cc, fill=TRUE)
-    xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
+    xn_pca <- prcomp(xn, scale.=FALSE, ...) #Li remove stats::
     xn_hat <- xn # row: genes; col: cells
     xy_hat <- xy
     for (i in 1 : length(which_cc))
@@ -249,7 +249,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 
 get_diff <- function(xy, xn, ...)
 {
-  xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
+  xn_pca <- prcomp(xn, scale.=FALSE, ...) #Li removed stats::
   #xn_pca %>% names()
   #[1] "sdev"     "rotation" "center"   "scale"    "x"  
   #sdev: diagonal matrix?
