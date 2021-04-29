@@ -279,10 +279,11 @@ get_diff <- function(xy, xn, rank.)
   #[1] "sdev"     "rotation" "center"   "scale"    "x"  
   #sdev: diagonal matrix?
   #rotation: the variance of each cell explained at each PC; row-cell, col-PC
+  #The nPCs is decided by min(ncol(x), nrow(x)), NOT by ncol!!!! Interesting!!!
   #x: the loading of the genes onto the new reduced space; row-gene, col-PC
   #Be aware that the PCs are variance summary of cells not genes
   #xn_pca$x: row-genes, col-PCs
-  #rank. optionally, a number specifying the maximal rank, 
+  #rank. optionally, a number specifying the maximal rank, too old parameter
   #i.e., maximal number of principal components to be used. 
   #Can be set as alternative or in addition to tol, 
   #useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
