@@ -155,7 +155,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...
     for (i in 1 : length(which_cc))
     {
       xn_hat <- xn_hat - (xn %*% xn_pca$rotation[, which_cc[i]]) %*%
-        #xn %*% xn_pca$rotation[, which_cc[i]], output: row, genes; col, PCs.
+        #xn(row-gene, col-cell) %*% xn_pca$rotation[, which_cc[i]] (row-cell, col-PC), output: row, genes; col, PCs.
         t(xn_pca$rotation[, which_cc[i]])#row: PCs, col: cells
         #The output of the second half of the above equation: row-genes, col-cells
         #The second half of the above equation: first load cc effect (cc dominating PCs) onto genes,
@@ -251,11 +251,12 @@ get_diff <- function(xy, xn, ...)
 {
   xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
   #Be aware that the PCs are variance summary of cells not genes
+  #xn_pca$x: row-genes, col-PCs
   #rank. optionally, a number specifying the maximal rank, 
   #i.e., maximal number of principal components to be used. 
   #Can be set as alternative or in addition to tol, 
   #useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
-  xn_proj <- xn %*% xn_pca$rotation #output: row: genes, col: PCs
+  xn_proj <- xn %*% xn_pca$rotation #output: row: cells, col: PCs
   xy_proj <- xy %*% xn_pca$rotation
 
   xn_load <- sqrt(colMeans(xn_proj ^ 2))
