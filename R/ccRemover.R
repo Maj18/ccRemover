@@ -250,6 +250,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 get_diff <- function(xy, xn, ...)
 {
   xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
+  #Be aware that the PCs are variance summary of cells not genes
   #rank. optionally, a number specifying the maximal rank, 
   #i.e., maximal number of principal components to be used. 
   #Can be set as alternative or in addition to tol, 
