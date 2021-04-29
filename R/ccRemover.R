@@ -283,10 +283,7 @@ get_diff <- function(xy, xn, rank.)
   #x: the loading of the genes onto the new reduced space; row-gene, col-PC
   #Be aware that the PCs are variance summary of cells not genes
   #xn_pca$x: row-genes, col-PCs
-  #rank. optionally, a number specifying the maximal rank, too old parameter
-  #i.e., maximal number of principal components to be used. 
-  #Can be set as alternative or in addition to tol, 
-  #useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
+ 
   xn_proj <- xn %*% (xn_pca$rotation[, 1:rank.]) #output: row: genes, col: PCs
   xy_proj <- xy %*% (xn_pca$rotation[, 1:rank.])
 
