@@ -74,7 +74,7 @@
 #'  }
 #'
 ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, ...)
-  #Li: one can add more options to stats::prcomp, e.g. rank.=3, for choosing different PC to compute.
+  #Li: one can add more options to stats::prcomp, e.g. rank.=3, for choosing different PC nr to keep.
 {
   ## check arguments
   if (!is.list(dat)) stop("dat has to be a list!")
