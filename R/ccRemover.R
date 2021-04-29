@@ -286,8 +286,8 @@ get_diff <- function(xy, xn, rank.)
   #i.e., maximal number of principal components to be used. 
   #Can be set as alternative or in addition to tol, 
   #useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
-  xn_proj <- xn %*% xn_pca$rotation[1:rank.] #output: row: cells, col: PCs
-  xy_proj <- xy %*% xn_pca$rotation[1:rank.]
+  xn_proj <- xn %*% xn_pca$rotation[, 1:rank.] #output: row: cells, col: PCs
+  xy_proj <- xy %*% xn_pca$rotation[, 1:rank.]
 
   xn_load <- sqrt(colMeans(xn_proj ^ 2))
   xy_load <- sqrt(colMeans(xy_proj ^ 2))
