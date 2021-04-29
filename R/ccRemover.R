@@ -216,6 +216,8 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
     res <- get_diff(xy[sample(1 : nrow(xy), nrow(xy), replace=TRUE), ], 
                     #replace=T make some genes disappear, while others overrepresented.
                     xn[sample(1 : nrow(xn), nrow(xn), replace=TRUE), ], ...)
+                    #Bug: the random sampling may produce cells with identical gene expression profile,
+                        #Leading to a 
     diff_load_boot[, i] <- res$diff_load 
     #From each bootstrap run, we will get $nPC diff_load values
     #All together, we will get a matrix: nrow= nPC, ncol=nboot
@@ -248,6 +250,10 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 get_diff <- function(xy, xn, ...)
 {
   xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
+  #rank. optionally, a number specifying the maximal rank, 
+  #i.e., maximal number of principal components to be used. 
+  #Can be set as alternative or in addition to tol, 
+  #useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
   xn_proj <- xn %*% xn_pca$rotation #output: row: genes, col: PCs
   xy_proj <- xy %*% xn_pca$rotation
 
