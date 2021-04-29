@@ -287,7 +287,7 @@ get_diff <- function(xy, xn, rank.)
   #Can be set as alternative or in addition to tol, 
   #useful notably when the desired rank is considerably smaller than the dimensions of the matrix.
   xn_proj <- xn %*% (xn_pca$rotation[, 1:rank.]) #output: row: genes, col: PCs
-  xy_proj <- (xy %*% (xn_pca$rotation[, 1:rank.])
+  xy_proj <- xy %*% (xn_pca$rotation[, 1:rank.])
 
   xn_load <- sqrt(colMeans(xn_proj ^ 2))
   xy_load <- sqrt(colMeans(xy_proj ^ 2))
