@@ -212,7 +212,7 @@ bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, rank.=6000)
   
   
   
-  bootRun <- function(boot){
+  bootRun <- function(i){
     if (bar == TRUE){
       utils::setTxtProgressBar(pb, i)
     }
