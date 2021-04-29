@@ -199,7 +199,7 @@ ccRemover <- function(dat, cutoff=3, max_it=4, nboot=200, ntop=10, bar=TRUE, cor
 #' cell-cycle and control genes as well as the difference between the loadings
 #' and the bootstrapped statistic for each loading.
 #'
-bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, cores=48, ...)
+bootstrap_diff <- function(xy, xn, nboot=200, cores=48, bar=TRUE, ...)
 {
   res0 <- get_diff(xy, xn, ...)
   val <- length(res0$xn_load) #min(ncol(xn), nrow(xn))
