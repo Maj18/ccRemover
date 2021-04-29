@@ -250,6 +250,11 @@ bootstrap_diff <- function(xy, xn, nboot=200, bar=TRUE, ...)
 get_diff <- function(xy, xn, ...)
 {
   xn_pca <- stats::prcomp(xn, scale.=FALSE, ...)
+  #xn_pca %>% names()
+  #[1] "sdev"     "rotation" "center"   "scale"    "x"  
+  #sdev: diagonal matrix?
+  #rotation: the variance of each cell explained at each PC; row-cell, col-PC
+  #x: the loading of the genes onto the new reduced space; row-gene, col-PC
   #Be aware that the PCs are variance summary of cells not genes
   #xn_pca$x: row-genes, col-PCs
   #rank. optionally, a number specifying the maximal rank, 
